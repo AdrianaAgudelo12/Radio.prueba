@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "394560511211",
+    "project_id": "com-example-radioprueba-bea16",
+    "storage_bucket": "com-example-radioprueba-bea16.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394560511211:android:e53ad55e716a75b83632ae",
+        "android_client_info": {
+          "package_name": "com.example.radioprueba"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3366yWS-xRhCVxYFsmqpw6uXxJ9elGnQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
