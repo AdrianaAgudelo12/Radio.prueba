@@ -48,6 +48,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.media3.common.util.UnstableApi
+import com.example.radioprueba.ui.theme.RadiopruebaTheme
 
 data class RadioStation(
     val id: Int,
@@ -101,51 +105,16 @@ val sampleStations = listOf(
         true,
         "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIO_SC.mp3"
     ),
-    RadioStation(
-        5,
-        "Olímpica Stereo",
-        "105.9 FM",
-        "Crossover / Vallenato / Salsa",
-        "AAC+ • 128 kbps",
-        true,
-        "https://playerservices.streamtheworld.com/api/livestream-redirect/OLIMPICA_BOG_SC.mp3"
-    ),
-    RadioStation(
-        6,
-        "Blu Radio",
-        "89.9 FM",
-        "Actualidad / Pop / Rock",
-        "AAC+ • 128 kbps",
-        false,
-        "https://playerservices.streamtheworld.com/api/livestream-redirect/BLU_RADIO_SC.mp3"
-    ),
-    RadioStation(
-        7,
-        "Tropicana",
-        "102.9 FM",
-        "Urbano / Salsa / Popular",
-        "MP3 • 128 kbps",
-        false,
-        "https://playerservices.streamtheworld.com/api/livestream-redirect/TROPICANA_BOG_SC.mp3"
-    ),
-    RadioStation(
-        8,
-        "La Mega",
-        "90.9 FM",
-        "Pop / Reggaeton / Juventud",
-        "AAC+ • 96 kbps",
-        false,
-        "https://playerservices.streamtheworld.com/api/livestream-redirect/LA_MEGA_BOG_SC.mp3"
-    ),
-    RadioStation(
-        9,
-        "La X Más Música",
-        "103.9 FM",
-        "Rock / Pop / Electrónica",
-        "AAC+ • 96 kbps",
-        false,
-        "https://stream.zeno.fm/0wr3c912g8uv"
-    ),
+    RadioStation(5, "Olímpica Stereo", "105.9 FM", "Crossover / Vallenato / Salsa", "AAC+ • 128 kbps", true,
+        "https://27323.live.streamtheworld.com:443/OLP_MEDELLINAAC.aac"),
+    RadioStation(6, "Blu Radio", "89.9 FM", "Actualidad / Pop / Rock", "AAC+ • 128 kbps", false,
+        "https://24233.live.streamtheworld.com:443/BLURADIO_ADP_SC"),
+    RadioStation(7, "Tropicana", "102.9 FM", "Urbano / Salsa / Popular", "MP3 • 128 kbps", false,
+        "https://27383.live.streamtheworld.com:443/TR_POPAYAN_SC"),
+    RadioStation(8, "Mix Radio", "89.9 FM", "Urbano / Reggaetón / Pop", "AAC+ • 96 kbps", false,
+        "https://24443.live.streamtheworld.com:443/MIX_MEDELLINAAC.aac"),
+    RadioStation(9, "La X Más Música", "103.9 FM", "Rock / Pop / Electrónica", "MP3 • 128 kbps", false,
+        "https://www.laxmasmusica.com/static/web_dataNormal.mp3"),
     RadioStation(
         10,
         "IU Digital Radio",
@@ -171,6 +140,7 @@ val genreToStationMap = mapOf(
     "Noticias" to sampleStations[0] // W Radio
 )
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RadioScreen() {
@@ -178,10 +148,17 @@ fun RadioScreen() {
     val haptic = LocalHapticFeedback.current
 
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var selectedStation by remember { mutableStateOf(sampleStations[0]) }
+    var selectedStationId by rememberSaveable { mutableIntStateOf(sampleStations[0].id) }
+    val selectedStation = remember(selectedStationId) {
+        sampleStations.find { it.id == selectedStationId } ?: sampleStations[0]
+    }
+
+    // función auxiliar para no repetir la búsqueda en cada sitio donde se cambia de emisora
+    fun selectStation(station: RadioStation) {
+        selectedStationId = station.id
+    }
     var isPlaying by rememberSaveable { mutableStateOf(false) }
     var isMuted by rememberSaveable { mutableStateOf(false) }
-    var selectedNavIndex by rememberSaveable { mutableIntStateOf(0) }
     var selectedGenre by rememberSaveable { mutableStateOf<String?>(null) }
 
     val displayedStations = remember(selectedGenre) {
@@ -272,7 +249,7 @@ fun RadioScreen() {
                     Icon(
                         imageVector = Icons.Default.Headphones,
                         contentDescription = null,
-                        tint = Color(0xFF1E3A8A),
+                        tint = Color(0xFF60A5FA),
                         modifier = Modifier.size(36.dp)
                     )
                     Column {
@@ -280,12 +257,12 @@ fun RadioScreen() {
                             text = "IU Digital Radio",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF0F172A)
+                            color = Color(0xFFF1F5F9)
                         )
                         Text(
                             text = "Tu música, tu momento",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF0284C7)
+                            color = Color(0xFF38BDF8)
                         )
                     }
                 }
@@ -295,7 +272,7 @@ fun RadioScreen() {
                         .size(44.dp)
                         .border(2.dp, Color(0xFF2563EB), CircleShape)
                         .clip(CircleShape)
-                        .background(Color(0xFFE0E7FF))
+                        .background(Color(0xFF1E293B))
                         .clickable {
                             triggerHaptic()
                             val permissionCheck = ContextCompat.checkSelfPermission(
@@ -327,312 +304,296 @@ fun RadioScreen() {
                 }
             }
         },
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
-                val items = listOf("Inicio", "Explorar", "En Vivo", "Perfil", "Ajustes")
-                val icons = listOf<ImageVector>(
-                    Icons.Default.Home,
-                    Icons.Default.Explore,
-                    Icons.Default.Radio,
-                    Icons.Default.Person,
-                    Icons.Default.Settings
-                )
-                items.forEachIndexed { index, item ->
-                    NavigationBarItem(
-                        icon = { Icon(icons[index], contentDescription = item) },
-                        label = { Text(item, fontSize = 10.sp) },
-                        selected = selectedNavIndex == index,
-                        onClick = {
-                            triggerHaptic()
-                            selectedNavIndex = index
-                        }
-                    )
-                }
-            }
-        }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .background(Color(0xFF0F172A)),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF1E1B4B),
-                                    Color(0xFF312E81),
-                                    Color(0xFFC2410C)
-                                )
-                            )
-                        )
-                        .padding(20.dp)
-                ) {
-                    Column(
+                item {
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        shape = RoundedCornerShape(24.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Colombia • ${selectedStation.genre}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = Color.White.copy(alpha = 0.2f)
-                            ) {
-                                Text(
-                                    text = selectedStation.bitrate,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.height(35.dp)
-                        ) {
-                            val infiniteTransition = rememberInfiniteTransition(label = "player_eq")
-                            repeat(18) { index ->
-                                val height by infiniteTransition.animateFloat(
-                                    initialValue = 8f,
-                                    targetValue = if (isPlaying && !isMuted) (10f + ((index * 7) % 24f)) else 8f,
-                                    animationSpec = infiniteRepeatable(
-                                        animation = tween(250 + (index * 40), easing = FastOutSlowInEasing),
-                                        repeatMode = RepeatMode.Reverse
-                                    ),
-                                    label = "bar_$index"
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .width(4.dp)
-                                        .height(height.dp)
-                                        .background(
-                                            color = if (isPlaying && !isMuted) Color(0xFF38BDF8) else Color.Gray,
-                                            shape = RoundedCornerShape(2.dp)
-                                        )
-                                )
-                            }
-                        }
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = if (isPlaying) "Reproduciendo en vivo" else "En pausa",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.9f),
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "Sonando: ${selectedStation.name} - ${selectedStation.frequency}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = Color.White.copy(alpha = 0.2f),
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clickable {
-                                            triggerHaptic()
-                                            isMuted = !isMuted
-                                        }
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
-                                            contentDescription = "Mute",
-                                            tint = Color.White
-                                        )
-                                    }
-                                }
-                                Text(
-                                    "Mute",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = Color.White.copy(alpha = 0.35f),
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .clickable {
-                                            triggerHaptic()
-                                            isPlaying = true
-                                        }
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = Icons.Default.PlayArrow,
-                                            contentDescription = "Play",
-                                            tint = Color.White,
-                                            modifier = Modifier.size(36.dp)
-                                        )
-                                    }
-                                }
-                                Text(
-                                    "Play",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = Color.White.copy(alpha = 0.2f),
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clickable {
-                                            triggerHaptic()
-                                            isPlaying = false
-                                        }
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = Icons.Default.Pause,
-                                            contentDescription = "Pause",
-                                            tint = Color.White
-                                        )
-                                    }
-                                }
-                                Text(
-                                    "Pause",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Explora por tipo de radio",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
-                )
-                Text(
-                    text = if (selectedGenre != null) "Filtrado por: $selectedGenre (Toca de nuevo para ver todas)" else "Cada género tiene su propio estilo",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF0284C7)
-                )
-
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    items(sampleGenres) { genre ->
-                        val isGenreSelected = selectedGenre == genre.name
-                        Card(
+                        Box(
                             modifier = Modifier
-                                .size(width = 130.dp, height = 90.dp)
-                                .clickable {
-                                    triggerHaptic()
-                                    if (isGenreSelected) {
-                                        selectedGenre = null
-                                    } else {
-                                        selectedGenre = genre.name
-                                        genreToStationMap[genre.name]?.let { station ->
-                                            selectedStation = station
-                                            isPlaying = true
-                                        }
-                                    }
-                                },
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = if (isGenreSelected) 8.dp else 4.dp),
-                            border = if (isGenreSelected) BorderStroke(2.dp, Color.White) else null
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Brush.linearGradient(genre.colors))
-                                    .padding(12.dp),
-                                contentAlignment = Alignment.BottomStart
-                            ) {
-                                Text(
-                                    text = genre.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                .fillMaxWidth()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0xFF1E1B4B),
+                                            Color(0xFF312E81),
+                                            Color(0xFFC2410C)
+                                        )
+                                    )
                                 )
+                                .padding(20.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Colombia • ${selectedStation.genre}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.8f)
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = Color.White.copy(alpha = 0.2f)
+                                    ) {
+                                        Text(
+                                            text = selectedStation.bitrate,
+                                            modifier = Modifier.padding(
+                                                horizontal = 8.dp,
+                                                vertical = 4.dp
+                                            ),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.height(35.dp)
+                                ) {
+                                    val infiniteTransition =
+                                        rememberInfiniteTransition(label = "player_eq")
+                                    repeat(18) { index ->
+                                        val height by infiniteTransition.animateFloat(
+                                            initialValue = 8f,
+                                            targetValue = if (isPlaying && !isMuted) (10f + ((index * 7) % 24f)) else 8f,
+                                            animationSpec = infiniteRepeatable(
+                                                animation = tween(
+                                                    250 + (index * 40),
+                                                    easing = FastOutSlowInEasing
+                                                ),
+                                                repeatMode = RepeatMode.Reverse
+                                            ),
+                                            label = "bar_$index"
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .width(4.dp)
+                                                .height(height.dp)
+                                                .background(
+                                                    color = if (isPlaying && !isMuted) Color(
+                                                        0xFF38BDF8
+                                                    ) else Color.Gray,
+                                                    shape = RoundedCornerShape(2.dp)
+                                                )
+                                        )
+                                    }
+                                }
+
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = if (isPlaying) "Reproduciendo en vivo" else "En pausa",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = "Sonando: ${selectedStation.name} - ${selectedStation.frequency}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color.White.copy(alpha = 0.2f),
+                                            modifier = Modifier
+                                                .size(56.dp)
+                                                .clickable {
+                                                    triggerHaptic()
+                                                    isMuted = !isMuted
+                                                }
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(
+                                                    imageVector = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                                    contentDescription = "Mute",
+                                                    tint = Color.White
+                                                )
+                                            }
+                                        }
+                                        Text(
+                                            "Mute",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color.White.copy(alpha = 0.35f),
+                                            modifier = Modifier
+                                                .size(72.dp)
+                                                .clickable {
+                                                    triggerHaptic()
+                                                    isPlaying = true
+                                                }
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(
+                                                    imageVector = Icons.Default.PlayArrow,
+                                                    contentDescription = "Play",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(36.dp)
+                                                )
+                                            }
+                                        }
+                                        Text(
+                                            "Play",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color.White.copy(alpha = 0.2f),
+                                            modifier = Modifier
+                                                .size(56.dp)
+                                                .clickable {
+                                                    triggerHaptic()
+                                                    isPlaying = false
+                                                }
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Pause,
+                                                    contentDescription = "Pause",
+                                                    tint = Color.White
+                                                )
+                                            }
+                                        }
+                                        Text(
+                                            "Pause",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }                }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Explora por tipo de radio",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFF1F5F9)
+                        )
+                        Text(
+                            text = if (selectedGenre != null) "Filtrado por: $selectedGenre (Toca de nuevo para ver todas)" else "Cada género tiene su propio estilo",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF38BDF8)
+                        )
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            items(sampleGenres) { genre ->
+                                val isGenreSelected = selectedGenre == genre.name
+                                Card(
+                                    modifier = Modifier
+                                        .size(width = 130.dp, height = 90.dp)
+                                        .clickable {
+                                            triggerHaptic()
+                                            if (isGenreSelected) {
+                                                selectedGenre = null
+                                            } else {
+                                                selectedGenre = genre.name
+                                                genreToStationMap[genre.name]?.let { station ->
+                                                    selectStation(station)
+                                                    isPlaying = true
+                                                }
+                                            }
+                                        },
+                                    shape = RoundedCornerShape(16.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = if (isGenreSelected) 8.dp else 4.dp),
+                                    border = if (isGenreSelected) BorderStroke(
+                                        2.dp,
+                                        Color.White
+                                    ) else null
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Brush.linearGradient(genre.colors))
+                                            .padding(12.dp),
+                                        contentAlignment = Alignment.BottomStart
+                                    ) {
+                                        Text(
+                                            text = genre.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (selectedGenre != null) "Emisoras: $selectedGenre" else "Emisoras Disponibles (${displayedStations.size})",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A)
-                    )
-                    if (selectedGenre != null) {
-                        TextButton(onClick = { selectedGenre = null }) {
-                            Text("Ver todas", fontSize = 12.sp)
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (selectedGenre != null) "Emisoras: $selectedGenre" else "Emisoras Disponibles (${displayedStations.size})",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFF1F5F9)
+                        )
+                        if (selectedGenre != null) {
+                            TextButton(onClick = { selectedGenre = null }) {
+                                Text("Ver todas", fontSize = 12.sp)
+                            }
                         }
                     }
                 }
-
-                displayedStations.forEach { station ->
+                items(displayedStations, key = { it.id }) { station ->
                     val isSelected = station.id == selectedStation.id
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 triggerHaptic()
-                                selectedStation = station
+                                selectStation(station)
                                 isPlaying = true
                             },
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) Color(0xFFEFF6FF) else Color.White
+                            containerColor = if (isSelected) Color(0xFF1E3A5F) else Color(0xFF1E293B)
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         border = if (isSelected) BorderStroke(1.dp, Color(0xFF2563EB)) else null
@@ -658,7 +619,7 @@ fun RadioScreen() {
                                     Text(
                                         text = station.name,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0F172A)
+                                        color = Color(0xFFF1F5F9)
                                     )
                                     if (station.isOfficial) {
                                         Surface(
@@ -687,7 +648,7 @@ fun RadioScreen() {
                                     Text(
                                         text = station.bitrate,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF64748B)
+                                        color = Color(0xFF94A3B8)
                                     )
                                 }
                             }
@@ -695,12 +656,12 @@ fun RadioScreen() {
                             IconButton(
                                 onClick = {
                                     triggerHaptic()
-                                    selectedStation = station
+                                    selectStation(station)
                                     isPlaying = !isPlaying
                                 },
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .background(Color(0xFFEFF6FF), CircleShape)
+                                    .background(Color(0xFF1E293B), CircleShape)
                             ) {
                                 Icon(
                                     imageVector = if (isSelected && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -712,6 +673,14 @@ fun RadioScreen() {
                     }
                 }
             }
-        }
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RadioScreenPreview() {
+    RadiopruebaTheme {
+        RadioScreen()
     }
 }
